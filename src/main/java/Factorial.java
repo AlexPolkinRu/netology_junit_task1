@@ -1,4 +1,3 @@
-import java.io.FileOutputStream;
 import java.math.BigDecimal;
 
 public class Factorial {

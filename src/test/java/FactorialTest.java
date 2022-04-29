@@ -1,10 +1,14 @@
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.math.BigDecimal;
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -13,7 +17,7 @@ public class FactorialTest {
 
     @ParameterizedTest
     @MethodSource("simpleValues")
-    public void factorialCalculateTest_SimpleValues(int x, BigDecimal expected) {
+    void factorialCalculateTest_SimpleValues(int x, BigDecimal expected) {
 
         //when:
         BigDecimal result = Factorial.calculate(x);
@@ -23,7 +27,7 @@ public class FactorialTest {
     }
 
     // Проверка работы на простых параметрах
-    private static Stream<Arguments> simpleValues() {
+    static Stream<Arguments> simpleValues() {
         return Stream.of(
                 // Проверяем простые значение
                 Arguments.of(5, new BigDecimal(120)),
@@ -38,7 +42,7 @@ public class FactorialTest {
 
     // Выбрасывается исключение при отрицательном параметре
     @Test
-    public void factorialCalculateTest_ExpectedException() {
+    void factorialCalculateTest_ExpectedException() {
 
         //given:
         int x = -1;
@@ -51,11 +55,10 @@ public class FactorialTest {
         assertThrows(expected, action);
     }
 
-    // Не выбрасываются исключения при больших значениях факториала
+    // Не выбрасываются исключения при больших параметрах факториала
     @ParameterizedTest
-    @MethodSource("bigValues")
-    public void factorialCalculateTest_DoesNotThrow(int x) {
-
+    @ValueSource(ints = {100, 1000, 10000, 100000})
+    void factorialCalculateTest_DoesNotThrow(int x) {
         //when:
         Executable action = () -> Factorial.calculate(x);
 
@@ -63,13 +66,42 @@ public class FactorialTest {
         assertDoesNotThrow(action);
     }
 
-    private static Stream<Arguments> bigValues() {
-        return Stream.of(
-                // Проверяем большие значения
-                Arguments.of(100),
-                Arguments.of(1000),
-                Arguments.of(10000),
-                Arguments.of(100000)
-        );
+    // Проверяем, что результат не null
+    @Test
+    void factorialCalculateTest_NotNull() {
+
+        //given:
+        int x = 100;
+
+        //when:
+        BigDecimal result = Factorial.calculate(x);
+
+        //then:
+        assertNotNull(result);
     }
+
+    // Проверяем, что вычисление результата не слишком затянуто
+    @Test
+    @Timeout(value = 100, unit = TimeUnit.MILLISECONDS)
+    void factorialCalculateTest_TimeOut100ms() {
+
+        //given:
+        int x = 10000;
+
+        //when:
+        BigDecimal result = Factorial.calculate(x);
+
+    }
+
+    // Проверяем, что вычисление результата не слишком затянуто вариант 2
+    @Test
+    void factorialCalculateTest_TimeOut3s() {
+
+        //given:
+        int x = 100000;
+
+        //assert
+        assertTimeout(Duration.ofSeconds(3), () -> Factorial.calculate(x));
+    }
+
 }
